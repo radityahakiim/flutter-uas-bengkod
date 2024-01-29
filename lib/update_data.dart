@@ -52,14 +52,15 @@ class _UpdateDataPageState extends State<UpdateDataPage> {
     });
   }
 
-  Future<String> updateImageToFirebaseStorage(XFile? imageFile) async {
+  Future<void> updateImageToFirebaseStorage(XFile? imageFile) async {
     String fileName = basename(imageFile!.path);
     String _oldFileName = widget.transaksi.filename;
+    String formattedDate = DateFormat('ddMMyy_HHmmss').format(DateTime.now());
     final oldRef = _storage.ref().child(_oldFileName);
     await oldRef.delete();
+    fileName = '${fileName}_$formattedDate';
     Reference storageReference = _storage.ref().child(fileName);
     await storageReference.putFile(File(imageFile.path));
-    return await storageReference.getDownloadURL();
   }
 
   void _clearData() {
@@ -79,9 +80,9 @@ class _UpdateDataPageState extends State<UpdateDataPage> {
         TextEditingController(text: widget.transaksi.namatransaksi);
     _dateinputController = TextEditingController(
         text: DateFormat('dd/MM/yy').format(_DateTimeStamp.toDate()));
-    _nominalController = TextEditingController(text: widget.transaksi.nominal);
+    _nominalController =
+        TextEditingController(text: widget.transaksi.nominal.toString());
     _descController = TextEditingController(text: widget.transaksi.keterangan);
-    _filename = TextEditingController(text: widget.transaksi.filename);
   }
 
   _selectDate(BuildContext context) async {
@@ -105,15 +106,15 @@ class _UpdateDataPageState extends State<UpdateDataPage> {
     CollectionReference transaksiCollection =
         _firestore.collection('transaksi');
     Future<void> updateData() async {
+      String datenow = DateFormat('ddMMyy_HHmmss').format(DateTime.now());
       await transaksiCollection.doc(widget.transaksiDocId).update({
         'namatransaksi': _namecontroller.text,
         'kategori': _kategoriController.text.toLowerCase().replaceAll(' ', ''),
         'keterangan': _descController.text,
         'tanggal': _DateTimeStamp,
-        'fileurl': widget.transaksi.filename != _filename.text
-            ? updateImageToFirebaseStorage(_imagefile).toString()
-            : widget.transaksi.fileurl,
-        'filename': _filename.text,
+        'filename': _filename.text.isEmpty
+            ? widget.transaksi.filename
+            : "${_filename.text}_$datenow",
         'nominal': int.parse(_nominalController.text)
       });
     }
@@ -221,7 +222,7 @@ class _UpdateDataPageState extends State<UpdateDataPage> {
               readOnly: true,
               style: const TextStyle(fontSize: 15),
               decoration: InputDecoration(
-                  hintText: 'Tambah Gambar',
+                  hintText: 'Ubah Gambar',
                   border: const OutlineInputBorder(),
                   isDense: true,
                   suffixIcon: IconButton(
@@ -247,6 +248,7 @@ class _UpdateDataPageState extends State<UpdateDataPage> {
           ),
           ElevatedButton(
             onPressed: () {
+              updateImageToFirebaseStorage(_imagefile);
               updateData();
               Navigator.pop(context);
             },

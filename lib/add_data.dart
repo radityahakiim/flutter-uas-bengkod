@@ -49,12 +49,14 @@ class _AddDataPageState extends State<AddDataPage> {
     });
   }
 
-  Future<String> uploadImageToFirebaseStorage(XFile? imageFile) async {
+  Future<void> uploadImageToFirebaseStorage(XFile? imageFile) async {
     String fileName = basename(imageFile!.path);
+    String formattedDate = DateFormat('ddMMyy_HHmmss').format(DateTime.now());
+    fileName = '${fileName}_$formattedDate';
     Reference storageReference = _storage.ref().child(fileName);
     await storageReference.putFile(File(imageFile.path));
-    var _url = await storageReference.getDownloadURL();
-    return _url;
+    // var _url = await storageReference.getDownloadURL();
+    // return _url;
   }
 
   void _clearData() {
@@ -92,13 +94,13 @@ class _AddDataPageState extends State<AddDataPage> {
   Widget build(BuildContext context) {
     CollectionReference dataCollection = _firestore.collection('transaksi');
     Future<void> addData() {
+      String datenow = DateFormat('ddMMyy_HHmmss').format(DateTime.now());
       return dataCollection.add({
         'namatransaksi': _namecontroller.text,
         'kategori': _kategoriController.text,
         'keterangan': _descController.text,
         'tanggal': _pickedDateTimestamp,
-        'fileurl': uploadImageToFirebaseStorage(_imagefile).toString(),
-        'filename': _filename.text,
+        'filename': "${_filename.text}_$datenow",
         'nominal': int.parse(_nominalController.text),
         'uid': widget.userUid
         // ignore: invalid_return_type_for_catch_error
@@ -237,6 +239,7 @@ class _AddDataPageState extends State<AddDataPage> {
           ),
           ElevatedButton(
             onPressed: () {
+              uploadImageToFirebaseStorage(_imagefile);
               addData();
               Navigator.pop(context);
             },

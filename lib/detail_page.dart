@@ -1,3 +1,4 @@
+import "package:firebase_storage/firebase_storage.dart";
 import "package:flutter/material.dart";
 import "package:flutter_tugasakhir/transaksi.dart";
 import "package:google_fonts/google_fonts.dart";
@@ -14,6 +15,19 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
+  FirebaseStorage _storage = FirebaseStorage.instance;
+
+  Future<String?> getImageURL(String imagePath) async {
+    try {
+      final Reference ref = _storage.ref().child(imagePath);
+      final String url = await ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      print("Error getting image URL: $e");
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,12 +57,29 @@ class _DetailPageState extends State<DetailPage> {
                   height: 30,
                 ),
                 getTitilefromCategory(widget.transaksi.kategori),
-                Container(
-                  height: 160,
-                  decoration: ShapeDecoration(
-                      color: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16))),
+                Center(
+                  child: FutureBuilder(
+                    future: getImageURL(widget.transaksi.filename),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      } else if (!snapshot.hasData) {
+                        return Text('Image not found');
+                      } else {
+                        String? imageUrl = snapshot.data;
+                        return Container(
+                          height: 160,
+                          decoration: ShapeDecoration(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            image: DecorationImage(
+                                image: NetworkImage(imageUrl!),
+                                fit: BoxFit.fill),
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(
                   height: 40,
@@ -61,7 +92,7 @@ class _DetailPageState extends State<DetailPage> {
                           bottom: BorderSide(width: 1))),
                   child: Center(
                     child: Text(
-                      widget.transaksi.nominal,
+                      widget.transaksi.nominal.toString(),
                       style: GoogleFonts.inter(
                           color: Colors.black,
                           fontSize: 24,

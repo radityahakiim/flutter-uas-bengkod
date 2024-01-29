@@ -118,7 +118,7 @@ class _ListDataState extends State<ListData> {
                   ],
                 ),
                 Text(
-                  widget.transaksi.nominal,
+                  widget.transaksi.nominal.toString(),
                   style: GoogleFonts.inter(
                       color: Colors.black,
                       fontSize: 16,

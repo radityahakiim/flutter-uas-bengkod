@@ -33,7 +33,6 @@ class _HomePageState extends State<HomePage> {
     for (var document in querySnapshot.docs) {
       Transaksi transaction = Transaksi(
           filename: document['filename'],
-          fileurl: document['fileurl'],
           uid: document['uid'],
           namatransaksi: document['namatransaksi'],
           kategori: document['kategori'],
@@ -41,7 +40,7 @@ class _HomePageState extends State<HomePage> {
           tanggal: document['tanggal'],
           keterangan: document['keterangan']);
 
-      int nominalValue = int.parse(transaction.nominal);
+      int nominalValue = transaction.nominal;
       if (transaction.kategori.contains('transaksimasuk')) {
         sum += nominalValue;
       } else {
@@ -183,14 +182,12 @@ class _HomePageState extends State<HomePage> {
                       final String uid = user.uid;
                       final String namatransaksi = data['namatransaksi'];
                       final String kategori = data['kategori'];
-                      final String nominal = data['nominal'].toString();
+                      final int nominal = data['nominal'];
                       final Timestamp tanggal = data['tanggal'];
                       final String keterangan = data['keterangan'];
                       final String filename = data['filename'];
-                      final String fileurl = data['fileurl'];
                       return Transaksi(
                           filename: filename,
-                          fileurl: fileurl,
                           uid: uid,
                           namatransaksi: namatransaksi,
                           kategori: kategori,
