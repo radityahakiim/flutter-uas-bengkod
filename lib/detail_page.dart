@@ -1,5 +1,6 @@
 import "package:firebase_storage/firebase_storage.dart";
 import "package:flutter/material.dart";
+import "package:flutter_tugasakhir/konversiuang.dart";
 import "package:flutter_tugasakhir/transaksi.dart";
 import "package:google_fonts/google_fonts.dart";
 import "package:intl/intl.dart";
@@ -92,7 +93,7 @@ class _DetailPageState extends State<DetailPage> {
                           bottom: BorderSide(width: 1))),
                   child: Center(
                     child: Text(
-                      widget.transaksi.nominal.toString(),
+                      CurrencyFormat.convertToIdr(widget.transaksi.nominal),
                       style: GoogleFonts.inter(
                           color: Colors.black,
                           fontSize: 24,
@@ -207,13 +208,13 @@ class _DetailPageState extends State<DetailPage> {
       if (category == "topup") {
         return const Icon(Icons.account_balance_wallet,
             size: 36, color: Colors.black);
-      } else if (category == "transaksikeluar" ||
-          category == "transaksimasuk") {
+      } else if (category == "transaksimasuk" ||
+          category == "transaksikeluar") {
         return const Icon(Icons.credit_card, size: 36, color: Colors.black);
       } else if (category == "tagihan") {
         return const Icon(Icons.receipt_long, size: 36, color: Colors.black);
       } else if (category == "tiket") {
-        return const Icon(Icons.receipt, size: 36, color: Colors.black);
+        return const Icon(Icons.airplane_ticket, size: 36, color: Colors.black);
       }
     }
     return const Icon(Icons.question_mark, size: 36, color: Colors.black);
@@ -221,12 +222,9 @@ class _DetailPageState extends State<DetailPage> {
 
   Widget getTitilefromCategory(String category) {
     if (category.isNotEmpty) {
-      if (category == "topup" ||
-          category == "transaksikeluar" ||
-          category == "tagihan" ||
-          category == "tiket") {
+      if (category == "transaksimasuk") {
         return Text(
-          "Transaksi Keluar",
+          "Transaksi Masuk",
           style: GoogleFonts.inter(
             color: Colors.black,
             fontSize: 24,
@@ -234,9 +232,9 @@ class _DetailPageState extends State<DetailPage> {
             height: 2,
           ),
         );
-      } else if (category == "transaksimasuk") {
+      } else {
         return Text(
-          "Transaksi Masuk",
+          "Transaksi Keluar",
           style: GoogleFonts.inter(
             color: Colors.black,
             fontSize: 24,
