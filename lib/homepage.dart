@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tugasakhir/add_data.dart';
+import 'package:flutter_tugasakhir/konversiuang.dart';
 import 'package:flutter_tugasakhir/list_data.dart';
 import 'package:flutter_tugasakhir/loginpage.dart';
 import 'package:flutter_tugasakhir/transaksi.dart';
@@ -15,21 +18,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int totalSum = 0;
+  StreamController<int> _totalSumController = StreamController<int>();
   FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
-  }
 
   Future<void> fetchData() async {
     QuerySnapshot<Map<String, dynamic>> querySnapshot =
         await FirebaseFirestore.instance.collection('transaksi').get();
     int sum = 0;
-
     for (var document in querySnapshot.docs) {
       Transaksi transaction = Transaksi(
           filename: document['filename'],
@@ -47,10 +43,19 @@ class _HomePageState extends State<HomePage> {
         sum -= nominalValue;
       }
     }
+    _totalSumController.add(sum);
+  }
 
-    setState(() {
-      totalSum = sum;
-    });
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  @override
+  void dispose() {
+    _totalSumController.close();
+    super.dispose();
   }
 
   Future<void> _signOut() async {
@@ -101,9 +106,12 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.exit_to_app),
             onPressed: () {
               _signOut();
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return const LoginPage();
-              }));
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
+                  ),
+                  (Route<dynamic> route) => false);
             },
           )
         ],
@@ -151,15 +159,26 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Rp$totalSum",
-                          style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
+                          alignment: Alignment.centerLeft,
+                          child: StreamBuilder<int>(
+                              stream: _totalSumController.stream,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return CircularProgressIndicator();
+                                } else if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                } else {
+                                  int? totalSum = snapshot.data;
+                                  return Text(
+                                    CurrencyFormat.convertToIdr(totalSum),
+                                    style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.w700),
+                                  );
+                                }
+                              })),
                     ]),
                   ),
                 ),
@@ -202,8 +221,12 @@ class _HomePageState extends State<HomePage> {
                         itemCount: listTransaksi.length,
                         itemBuilder: (context, index) {
                           return ListData(
-                              transaksiDocId: snapshot.data!.docs[index].id,
-                              transaksi: listTransaksi[index]);
+                            transaksiDocId: snapshot.data!.docs[index].id,
+                            transaksi: listTransaksi[index],
+                            refreshCallback: () {
+                              return fetchData();
+                            },
+                          );
                         });
                   },
                 ))
