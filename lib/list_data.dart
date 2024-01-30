@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_tugasakhir/detail_page.dart';
+import 'package:flutter_tugasakhir/konversiuang.dart';
 import 'package:flutter_tugasakhir/update_data.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -9,9 +10,13 @@ import 'transaksi.dart';
 class ListData extends StatefulWidget {
   final String transaksiDocId;
   final Transaksi transaksi;
+  final RefreshCallback refreshCallback;
 
   const ListData(
-      {super.key, required this.transaksiDocId, required this.transaksi});
+      {super.key,
+      required this.transaksiDocId,
+      required this.transaksi,
+      required this.refreshCallback});
 
   @override
   State<ListData> createState() => _ListDataState();
@@ -54,6 +59,7 @@ class _ListDataState extends State<ListData> {
 
       if (result == 'delete') {
         deleteData();
+        widget.refreshCallback();
       } else if (result == 'update') {
         // ignore: use_build_context_synchronously
         Navigator.push(
@@ -118,7 +124,7 @@ class _ListDataState extends State<ListData> {
                   ],
                 ),
                 Text(
-                  widget.transaksi.nominal.toString(),
+                  CurrencyFormat.convertToIdr(widget.transaksi.nominal),
                   style: GoogleFonts.inter(
                       color: Colors.black,
                       fontSize: 16,
@@ -144,9 +150,11 @@ class _ListDataState extends State<ListData> {
       if (category == "topup") {
         return const Icon(Icons.account_balance_wallet,
             size: 36, color: Color(0xFF48CAE4));
-      } else if (category == "transaksikeluar" ||
-          category == "transaksimasuk") {
-        return const Icon(Icons.credit_card,
+      } else if (category == "transaksikeluar") {
+        return const Icon(Icons.arrow_upward,
+            size: 36, color: Color(0xFF48CAE4));
+      } else if (category == "transaksimasuk") {
+        return const Icon(Icons.arrow_downward,
             size: 36, color: Color(0xFF48CAE4));
       } else if (category == "tagihan") {
         return const Icon(Icons.receipt_long,
