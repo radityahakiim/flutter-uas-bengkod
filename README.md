@@ -1,3 +1,3 @@
-# flutter_tugasakhir
+# Aplikasi Catatan Keuangan berbasis Flutter
 
-A new Flutter project.
+Capstone Project Bengkel Koding
